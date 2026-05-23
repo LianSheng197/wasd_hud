@@ -9,6 +9,7 @@ pub struct InputState {
     pub listener_ok: bool,
     pub listener_error: Option<String>,
     pub event_count: u64,
+    pub revision: u64,
 }
 
 #[derive(Clone)]

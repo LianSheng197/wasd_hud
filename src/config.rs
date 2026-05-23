@@ -57,7 +57,7 @@ impl Default for HudConfig {
             left_pad: 5.0,
             tab_w_mul: 1.4,
             shift_w_mul: 1.4,
-            space_w_mul: 3.0,
+            space_w_mul: 2.8,
             space_extra_gaps: 2.0,
             key_round: 8.0,
             key_stroke_w: 2.0,

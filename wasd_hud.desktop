@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=WASD HUD
+Comment=Keyboard and mouse HUD overlay
+Exec=/home/ls197/wasd_hud/run.sh
+Path=/home/ls197/wasd_hud
+Terminal=false
+Categories=Utility;
+Keywords=wasd;hud;overlay;keyboard;mouse;
+StartupNotify=false

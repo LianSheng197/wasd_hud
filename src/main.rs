@@ -2,11 +2,13 @@ mod app;
 mod config;
 mod draw;
 mod input;
+mod position;
 mod state;
 
 use crate::app::HudApp;
 use crate::config::HudConfig;
 use crate::input::{map_button, map_key};
+use crate::position::load_window_position;
 use crate::state::HudState;
 use eframe::egui;
 use rdev::{listen, Event, EventType};
@@ -26,41 +28,56 @@ fn main() -> eframe::Result<()> {
             let mut st = state_for_thread.inner.lock().unwrap();
             st.listener_ok = true;
             st.listener_error = None;
+            st.revision = st.revision.saturating_add(1);
         }
 
         let listen_result = listen(move |event: Event| {
             let mut st = state_for_events.inner.lock().unwrap();
-            st.event_count = st.event_count.saturating_add(1);
 
             match event.event_type {
                 EventType::KeyPress(k) => {
+                    st.event_count = st.event_count.saturating_add(1);
                     if let Some(name) = map_key(k) {
-                        st.pressed.insert(name);
+                        if st.pressed.insert(name) {
+                            st.revision = st.revision.saturating_add(1);
+                        }
                     }
                 }
                 EventType::KeyRelease(k) => {
+                    st.event_count = st.event_count.saturating_add(1);
                     if let Some(name) = map_key(k) {
-                        st.pressed.remove(name);
+                        if st.pressed.remove(name) {
+                            st.revision = st.revision.saturating_add(1);
+                        }
                     }
                 }
                 EventType::ButtonPress(b) => {
+                    st.event_count = st.event_count.saturating_add(1);
                     if let Some(name) = map_button(b) {
-                        st.pressed.insert(name);
+                        if st.pressed.insert(name) {
+                            st.revision = st.revision.saturating_add(1);
+                        }
                     }
                 }
                 EventType::ButtonRelease(b) => {
+                    st.event_count = st.event_count.saturating_add(1);
                     if let Some(name) = map_button(b) {
-                        st.pressed.remove(name);
+                        if st.pressed.remove(name) {
+                            st.revision = st.revision.saturating_add(1);
+                        }
                     }
                 }
                 EventType::Wheel {
                     delta_x: _,
                     delta_y,
                 } => {
+                    st.event_count = st.event_count.saturating_add(1);
                     if delta_y > 0 {
                         st.wheel_up_ticks = wheel_flash_ticks;
+                        st.revision = st.revision.saturating_add(1);
                     } else if delta_y < 0 {
                         st.wheel_down_ticks = wheel_flash_ticks;
+                        st.revision = st.revision.saturating_add(1);
                     }
                 }
                 _ => {}
@@ -71,15 +88,22 @@ fn main() -> eframe::Result<()> {
             let mut st = state_for_thread.inner.lock().unwrap();
             st.listener_ok = false;
             st.listener_error = Some(format!("{err:?}"));
+            st.revision = st.revision.saturating_add(1);
         }
     });
 
+    let mut viewport = egui::ViewportBuilder::default()
+        .with_decorations(false)
+        .with_transparent(true)
+        .with_always_on_top()
+        .with_window_type(egui::X11WindowType::Normal)
+        .with_inner_size([cfg.win_w, cfg.win_h]);
+    if let Some(pos) = load_window_position() {
+        viewport = viewport.with_position(pos);
+    }
+
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
-            .with_decorations(false)
-            .with_transparent(true)
-            .with_always_on_top()
-            .with_inner_size([cfg.win_w, cfg.win_h]),
+        viewport,
         ..Default::default()
     };
 
