@@ -2,8 +2,8 @@
 Type=Application
 Name=WASD HUD
 Comment=Keyboard and mouse HUD overlay
-Exec=/home/ls197/wasd_hud/run.sh
-Path=/home/ls197/wasd_hud
+Exec=__APP_DIR__/run.sh
+Path=__APP_DIR__
 Terminal=false
 Categories=Utility;
 Keywords=wasd;hud;overlay;keyboard;mouse;
