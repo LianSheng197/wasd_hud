@@ -297,6 +297,35 @@ impl eframe::App for HudApp {
             .fixed_pos(egui::pos2(0.0, 0.0))
             .movable(false)
             .show(ctx, |ui| {
+                let close_size = egui::vec2(cfg.grip_h, cfg.grip_h);
+                let close_pos = egui::pos2(cfg.win_w - close_size.x - 8.0, 4.0);
+                let close_rect = egui::Rect::from_min_size(close_pos, close_size);
+                let close_resp = ui.interact(
+                    close_rect,
+                    egui::Id::new("close_button"),
+                    egui::Sense::click(),
+                );
+                if close_resp.hovered() {
+                    ctx.set_cursor_icon(egui::CursorIcon::PointingHand);
+                }
+                if close_resp.clicked() {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                }
+
+                let close_bg = if close_resp.hovered() {
+                    egui::Color32::from_rgba_unmultiplied(255, 80, 80, 90)
+                } else {
+                    egui::Color32::from_rgba_unmultiplied(255, 255, 255, 12)
+                };
+                ui.painter().rect_filled(close_rect, cfg.grip_round, close_bg);
+                ui.painter().text(
+                    close_rect.center(),
+                    egui::Align2::CENTER_CENTER,
+                    "x",
+                    egui::FontId::proportional(cfg.grip_font),
+                    egui::Color32::from_rgba_unmultiplied(255, 255, 255, 220),
+                );
+
                 let grip_size = egui::vec2(cfg.grip_w, cfg.grip_h);
                 let (grip_rect, grip_resp) =
                     ui.allocate_exact_size(grip_size, egui::Sense::click_and_drag());
@@ -381,7 +410,8 @@ impl eframe::App for HudApp {
                         self.rust_info_line.clone(),
                     )
                 };
-                let top_right = origin + egui::vec2(cfg.win_w - 10.0, 0.0);
+                let debug_right_margin = cfg.grip_h + 18.0;
+                let top_right = origin + egui::vec2(cfg.win_w - debug_right_margin, 0.0);
                 let main_font = egui::FontId::proportional(cfg.grip_font);
                 let main_gray = egui::Color32::from_rgba_unmultiplied(220, 220, 220, 210);
                 let events_red = egui::Color32::from_rgba_unmultiplied(255, 180, 180, 220);
@@ -415,7 +445,7 @@ impl eframe::App for HudApp {
 
                 if !status_line1.is_empty() {
                     ui.painter().text(
-                        origin + egui::vec2(cfg.win_w - 8.0, 12.0),
+                        egui::pos2(top_right.x, origin.y + 12.0),
                         egui::Align2::RIGHT_TOP,
                         status_line1,
                         egui::FontId::proportional(cfg.grip_font),
